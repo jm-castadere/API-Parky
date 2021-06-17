@@ -1,28 +1,20 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using ParkyAPI.Data;
+using ParkyAPI.ParkyMapper;
 using ParkyAPI.Repository;
 using ParkyAPI.Repository.IRepository;
-using AutoMapper;
-using ParkyAPI.ParkyMapper;
-using System.Reflection;
-using System.IO;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 namespace ParkyAPI
@@ -43,27 +35,38 @@ namespace ParkyAPI
             services.AddDbContext<ApplicationDbContext>
                 (options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
+            //add function to work in Datas
             services.AddScoped<INationalParkRepository, NationalParkRepository>();
             services.AddScoped<ITrailRepository, TrailRepository>();
+            //add service User
             services.AddScoped<IUserRepository, UserRepository>();
+         
+            //Add mapping setup
             services.AddAutoMapper(typeof(ParkyMappings));
+            
+            //add service versioning
             services.AddApiVersioning(options =>
             {
                 options.AssumeDefaultVersionWhenUnspecified = true;
                 options.DefaultApiVersion = new ApiVersion(1, 0);
                 options.ReportApiVersions = true;
             });
+
+            //add service versioning
             services.AddVersionedApiExplorer(options => options.GroupNameFormat = "'v'VVV");
+
+            //Add swagger
             services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
             services.AddSwaggerGen();
-            var appSettingsSection = Configuration.GetSection("AppSettings");
             
+            //add appsetting value ->Secret Key
+            var appSettingsSection = Configuration.GetSection("AppSettings");
             services.Configure<AppSettings>(appSettingsSection);
-
             var appSettings = appSettingsSection.Get<AppSettings>();
+            //Get key secret to encoding
             var key = Encoding.ASCII.GetBytes(appSettings.Secret);
 
-
+            //Add Authentication
             services.AddAuthentication(x =>
             {
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -75,6 +78,7 @@ namespace ParkyAPI
                 x.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
+                    //Get key encoded
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateIssuer = false,
                     ValidateAudience = false
@@ -126,11 +130,20 @@ namespace ParkyAPI
             //    var cmlCommentsFullPath = Path.Combine(AppContext.BaseDirectory, xmlCommentFile);
             //    options.IncludeXmlComments(cmlCommentsFullPath);
             //});
+
             services.AddControllers();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApiVersionDescriptionProvider provider)
+
+        /// <summary>
+        /// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        /// </summary>
+        /// <param name="app"></param>
+        /// <param name="env"></param>
+        /// <param name="provider">versioning</param>
+        public void Configure(IApplicationBuilder app, 
+                                IWebHostEnvironment env, 
+                                    IApiVersionDescriptionProvider provider)
         {
             if (env.IsDevelopment())
             {
@@ -138,12 +151,17 @@ namespace ParkyAPI
             }
 
             app.UseHttpsRedirection();
+          
+            //Configure swagger
             app.UseSwagger();
             app.UseSwaggerUI(options => {
                foreach(var desc in provider.ApiVersionDescriptions)
-                    options.SwaggerEndpoint($"/swagger/{desc.GroupName}/swagger.json",
-                        desc.GroupName.ToUpperInvariant());
-                options.RoutePrefix = "";
+               {
+                   options.SwaggerEndpoint($"/swagger/{desc.GroupName}/swagger.json", 
+                                                            desc.GroupName.ToUpperInvariant());
+               }
+
+               options.RoutePrefix = "";
             });
 
             //app.UseSwaggerUI(options=> {
@@ -151,11 +169,15 @@ namespace ParkyAPI
             //    //options.SwaggerEndpoint("/swagger/ParkyOpenAPISpecTrails/swagger.json", "Parky API Trails");
             //    options.RoutePrefix = "";
             //});
+
             app.UseRouting();
+
+            //Authorization web and Api
             app.UseCors(x => x
               .AllowAnyOrigin()
               .AllowAnyMethod()
               .AllowAnyHeader());
+            // Authentication and Authorization
             app.UseAuthentication();
             app.UseAuthorization();
 

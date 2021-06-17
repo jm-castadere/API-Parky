@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ParkyAPI.Models;
 using ParkyAPI.Models.Dtos;
 using ParkyAPI.Repository.IRepository;
+using System.Collections.Generic;
 
 namespace ParkyAPI.Controllers
 {
@@ -62,7 +59,9 @@ namespace ParkyAPI.Controllers
             {
                 return NotFound();
             }
+            //Mapper 
             var objDto = _mapper.Map<NationalParkDto>(obj);
+            //Replace code
             //var objDto = new NationalParkDto()
             //{
             //    Created = obj.Created,

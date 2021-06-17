@@ -36,5 +36,13 @@
             <param name="trailId"> The id of the trail </param>
             <returns></returns>
         </member>
+        <member name="M:ParkyAPI.Startup.Configure(Microsoft.AspNetCore.Builder.IApplicationBuilder,Microsoft.AspNetCore.Hosting.IWebHostEnvironment,Microsoft.AspNetCore.Mvc.ApiExplorer.IApiVersionDescriptionProvider)">
+            <summary>
+            This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+            </summary>
+            <param name="app"></param>
+            <param name="env"></param>
+            <param name="provider">versioning</param>
+        </member>
     </members>
 </doc>

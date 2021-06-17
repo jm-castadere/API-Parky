@@ -4,12 +4,10 @@ using ParkyAPI.Data;
 using ParkyAPI.Models;
 using ParkyAPI.Repository.IRepository;
 using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ParkyAPI.Repository
 {
@@ -24,6 +22,13 @@ namespace ParkyAPI.Repository
             _appSettings = appsettings.Value;
         }
 
+
+        /// <summary>
+        /// Authenticate usr
+        /// </summary>
+        /// <param name="username">user name</param>
+        /// <param name="password">password user</param>
+        /// <returns>user authentified witj token</returns>
         public User Authenticate(string username, string password)
         {
             var user = _db.Users.SingleOrDefault(x => x.Username == username && x.Password == password);
@@ -49,6 +54,7 @@ namespace ParkyAPI.Repository
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
+            //Set user token
             user.Token = tokenHandler.WriteToken(token);
             user.Password = "";
             return user;
