@@ -36,6 +36,43 @@
             <param name="trailId"> The id of the trail </param>
             <returns></returns>
         </member>
+        <member name="M:ParkyAPI.Controllers.UsersController.Authenticate(ParkyAPI.Models.AuthenticationModel)">
+            <summary>
+            Login user
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ParkyAPI.Controllers.UsersController.Register(ParkyAPI.Models.AuthenticationModel)">
+            <summary>
+            Register new user
+            </summary>
+            <param name="model">value form view</param>
+            <returns></returns>
+        </member>
+        <member name="M:ParkyAPI.Repository.UserRepository.Authenticate(System.String,System.String)">
+            <summary>
+            Authenticate usr
+            </summary>
+            <param name="username">user name</param>
+            <param name="password">password user</param>
+            <returns>user authentified witj token</returns>
+        </member>
+        <member name="M:ParkyAPI.Repository.UserRepository.IsUniqueUser(System.String)">
+            <summary>
+            chek user is unique
+            </summary>
+            <param name="username"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ParkyAPI.Repository.UserRepository.Register(System.String,System.String)">
+            <summary>
+            add new user
+            </summary>
+            <param name="username">user name</param>
+            <param name="password">passsword</param>
+            <returns></returns>
+        </member>
         <member name="M:ParkyAPI.Startup.Configure(Microsoft.AspNetCore.Builder.IApplicationBuilder,Microsoft.AspNetCore.Hosting.IWebHostEnvironment,Microsoft.AspNetCore.Mvc.ApiExplorer.IApiVersionDescriptionProvider)">
             <summary>
             This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

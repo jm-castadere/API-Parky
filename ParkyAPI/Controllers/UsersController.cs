@@ -17,6 +17,11 @@ namespace ParkyAPI.Controllers
             _userRepo = userRepo;
         }
 
+        /// <summary>
+        /// Login user
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [AllowAnonymous]
         [HttpPost("authenticate")]
         public IActionResult Authenticate([FromBody] AuthenticationModel model)
@@ -29,17 +34,24 @@ namespace ParkyAPI.Controllers
             return Ok(user);
         }
 
+        /// <summary>
+        /// Register new user
+        /// </summary>
+        /// <param name="model">value form view</param>
+        /// <returns></returns>
         [AllowAnonymous]
         [HttpPost("register")]
         public IActionResult Register([FromBody] AuthenticationModel model)
         {
+            //Check if user exist
             bool ifUserNameUnique = _userRepo.IsUniqueUser(model.Username);
             if (!ifUserNameUnique)
             {
                 return BadRequest(new { message = "Username already exists" });
             }
-            var user = _userRepo.Register(model.Username, model.Password);
 
+            //add new user
+            var user = _userRepo.Register(model.Username, model.Password);
             if (user == null)
             {
                 return BadRequest(new { message = "Error while registering" });

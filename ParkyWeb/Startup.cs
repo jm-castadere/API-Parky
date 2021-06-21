@@ -23,6 +23,7 @@ namespace ParkyWeb
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            //Init authenticiation cookie
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
@@ -32,12 +33,16 @@ namespace ParkyWeb
                     options.AccessDeniedPath = "/Home/AccessDenied";
                     options.SlidingExpiration=true;
                 });
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+            //Add service
             services.AddScoped<INationalParkRepository, NationalParkRepository>();
             services.AddScoped<ITrailRepository, TrailRepository>();
             services.AddScoped<IAccountRepository, AccountRepository>();
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
             services.AddControllersWithViews().AddRazorRuntimeCompilation();
             services.AddHttpClient();
+           
             services.AddSession(options =>
             {
                 // Set a short timeout for easy testing.
@@ -71,6 +76,7 @@ namespace ParkyWeb
              .AllowAnyHeader());
 
             app.UseSession();
+
             app.UseAuthentication();
             app.UseAuthorization();
            

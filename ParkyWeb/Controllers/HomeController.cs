@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,31 +6,54 @@ using Microsoft.Extensions.Logging;
 using ParkyWeb.Models;
 using ParkyWeb.Models.ViewModel;
 using ParkyWeb.Repository.IRepository;
+using System.Diagnostics;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace ParkyWeb.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly INationalParkRepository _npRepo;
-        private readonly IAccountRepository _accRepo;
+       
+        private readonly INationalParkRepository _parkRepo;
+        private readonly IAccountRepository _accountRepo;
         private readonly ITrailRepository _trailRepo;
-        public HomeController(ILogger<HomeController> logger, INationalParkRepository npRepo,
-            ITrailRepository trailRepo, IAccountRepository accRepo)
+        
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="parkRepo">park</param>
+        /// <param name="trailRepo">trail</param>
+        /// <param name="accountRepo">account</param>
+        public HomeController(ILogger<HomeController> logger, 
+                                INationalParkRepository parkRepo,
+                                ITrailRepository trailRepo, 
+                                IAccountRepository accountRepo)
         {
-            _npRepo = npRepo;
+            _parkRepo = parkRepo;
             _trailRepo = trailRepo;
             _logger = logger;
-            _accRepo = accRepo;
+            _accountRepo = accountRepo;
         }
+
+        /// <summary>
+        /// View Home
+        /// </summary>
+        /// <returns></returns>
 
         public async Task<IActionResult> Index()
         {
             IndexVM listOfParksAndTrails = new IndexVM()
             {
-                NationalParkList = await _npRepo.GetAllAsync(SD.NationalParkAPIPath,HttpContext.Session.GetString("JWToken")),
-                TrailList = await _trailRepo.GetAllAsync(SD.TrailAPIPath, HttpContext.Session.GetString("JWToken")),
+                //get all park value
+                NationalParkList = await _parkRepo.GetAllAsync(AppVariables.NationalParkAPIPath,HttpContext.Session.GetString("JWToken")),
+              
+                //get all trail
+                TrailList = await _trailRepo.GetAllAsync(AppVariables.TrailAPIPath, HttpContext.Session.GetString("JWToken")),
             };
+
             return View(listOfParksAndTrails);
         }
 
@@ -50,6 +67,9 @@ namespace ParkyWeb.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+        
+        
+
         [HttpGet]
         public IActionResult Login()
         {
@@ -57,27 +77,40 @@ namespace ParkyWeb.Controllers
             return View(obj);
         }
 
+        /// <summary>
+        /// Login for user
+        /// </summary>
+        /// <param name="obj">user parameter</param>
+        /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async  Task<IActionResult> Login(User obj)
         {
-            User objUser = await _accRepo.LoginAsync(SD.AccountAPIPath + "authenticate/", obj);
+            //Call api to log user (url+authenticate with user parameter
+            User objUser = await _accountRepo.LoginAsync(AppVariables.AccountAPIPath + "authenticate/", obj);
+            //Check if User token created
             if (objUser.Token == null)
             {
                 return View();
             }
 
+            //Create identity prameter
             var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
             identity.AddClaim(new Claim(ClaimTypes.Name, objUser.Username));
             identity.AddClaim(new Claim(ClaimTypes.Role, objUser.Role));
+           
             var principal = new ClaimsPrincipal(identity);
+            
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-
-            HttpContext.Session.SetString("JWToken", objUser.Token);
-            TempData["alert"] = "Welcome " + objUser.Username;
+            //Sauve in session token and user
+            HttpContext.Session.SetString(AppVariables.JWTokenSession, objUser.Token);
+            TempData[AppVariables.TempDataAlert] = "Welcome " + objUser.Username;
+            
+            //Redirect to Action of contoller
             return RedirectToAction("Index");
         }
+
 
         [HttpGet]
         public IActionResult Register()
@@ -85,23 +118,39 @@ namespace ParkyWeb.Controllers
             return View();
         }
 
+        /// <summary>
+        /// Create new user log
+        /// </summary>
+        /// <param name="obj">user parameter</param>
+        /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(User obj)
         {
-            bool result = await _accRepo.RegisterAsync(SD.AccountAPIPath + "register/", obj);
+            bool result = await _accountRepo.RegisterAsync(AppVariables.AccountAPIPath + "register/", obj);
             if (result == false)
             {
                 return View();
             }
-            TempData["alert"] = "Registeration Successful";
+            TempData[AppVariables.TempDataAlert] = "Registeration Successful";
+
+            //Redirect to Action of contoller
+            //Get to login view
             return RedirectToAction("Login");
         }
 
+
+        /// <summary>
+        /// Logout
+        /// </summary>
+        /// <returns></returns>
         public async  Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync();
-            HttpContext.Session.SetString("JWToken", "");
+            //Clean session token value
+            HttpContext.Session.SetString(AppVariables.JWTokenSession, "");
+
+            //Redirect to Action of contoller
             return RedirectToAction("Index");
         }
 

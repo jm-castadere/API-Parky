@@ -45,10 +45,14 @@ namespace ParkyAPI.Repository
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new Claim[] {
+                    //get user login
                     new Claim(ClaimTypes.Name, user.Id.ToString()),
+                    //Get Role
                     new Claim(ClaimTypes.Role,user.Role)
                 }),
+
                 Expires = DateTime.UtcNow.AddDays(7),
+
                 SigningCredentials = new SigningCredentials
                                 (new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
@@ -59,7 +63,12 @@ namespace ParkyAPI.Repository
             user.Password = "";
             return user;
         }
-
+        
+        /// <summary>
+        /// chek user is unique
+        /// </summary>
+        /// <param name="username"></param>
+        /// <returns></returns>
         public bool IsUniqueUser(string username)
         {
             var user = _db.Users.SingleOrDefault(x => x.Username == username);
@@ -71,17 +80,27 @@ namespace ParkyAPI.Repository
             return false;
         }
 
+        /// <summary>
+        /// add new user
+        /// </summary>
+        /// <param name="username">user name</param>
+        /// <param name="password">passsword</param>
+        /// <returns></returns>
         public User Register(string username, string password)
         {
             User userObj = new User()
             {
                 Username = username,
                 Password = password,
+                //SSet role
                 Role="Admin"
             };
 
             _db.Users.Add(userObj);
+
             _db.SaveChanges();
+            
+            //Clean password
             userObj.Password = "";
             return userObj;
         }

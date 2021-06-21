@@ -1,9 +1,7 @@
 ﻿using Newtonsoft.Json;
 using ParkyWeb.Models;
 using ParkyWeb.Repository.IRepository;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,6 +17,12 @@ namespace ParkyWeb.Repository
         _clientFactory = clientFactory;
     }
 
+        /// <summary>
+        /// Login with user parameter
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="objToCreate"></param>
+        /// <returns></returns>
         public async Task<User> LoginAsync(string url, User objToCreate)
         {
             var request = new HttpRequestMessage(HttpMethod.Post, url);
@@ -33,8 +37,9 @@ namespace ParkyWeb.Repository
             }
 
             var client = _clientFactory.CreateClient();
+
             HttpResponseMessage response = await client.SendAsync(request);
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            if (response.StatusCode == HttpStatusCode.OK)
             {
                 var jsonString = await response.Content.ReadAsStringAsync();
                 return JsonConvert.DeserializeObject<User>(jsonString);
@@ -45,6 +50,13 @@ namespace ParkyWeb.Repository
             }
         }
 
+
+        /// <summary>
+        /// Create user
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="objToCreate"></param>
+        /// <returns></returns>
         public async Task<bool> RegisterAsync(string url, User objToCreate)
         {
             var request = new HttpRequestMessage(HttpMethod.Post, url);
@@ -59,8 +71,9 @@ namespace ParkyWeb.Repository
             }
 
             var client = _clientFactory.CreateClient();
+
             HttpResponseMessage response = await client.SendAsync(request);
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            if (response.StatusCode == HttpStatusCode.OK)
             {
                 return true;
             }

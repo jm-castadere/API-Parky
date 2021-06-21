@@ -32,6 +32,8 @@ namespace ParkyAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors();
+
+
             services.AddDbContext<ApplicationDbContext>
                 (options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
